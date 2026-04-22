@@ -8,6 +8,10 @@ import sys
 from pathlib import Path
 
 
+def _pip_env() -> dict[str, str]:
+    return {**os.environ, "PIP_DISABLE_PIP_VERSION_CHECK": "1"}
+
+
 def ensure_runtime_deps() -> None:
     if os.environ.get("LINGUABOOST_SKIP_DEPS_BOOTSTRAP", "").lower() in ("1", "true", "yes"):
         return
@@ -26,29 +30,34 @@ def ensure_runtime_deps() -> None:
     if root is None:
         return
 
+    quiet = ["-q"] if os.environ.get("LINGUABOOST_PIP_VERBOSE", "").lower() not in ("1", "true", "yes") else []
+    common = [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--no-cache-dir",
+        "--root-user-action=ignore",
+        *quiet,
+    ]
+
     subprocess.run(
         [
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "--no-cache-dir",
+            *common,
             "-r",
             str(root / "requirements.txt"),
         ],
         cwd=root,
         check=True,
+        env=_pip_env(),
     )
     subprocess.run(
         [
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "--no-cache-dir",
+            *common,
             str(root),
             "--no-deps",
         ],
         cwd=root,
         check=True,
+        env=_pip_env(),
     )
