@@ -1,4 +1,20 @@
+import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
+
+
+def _ensure_src_on_sys_path() -> None:
+    """PaaS often runs `python -m linguaboost.app.main` with cwd under repo but without pip install."""
+    try:
+        import linguaboost  # noqa: F401
+    except ImportError:
+        src_root = Path(__file__).resolve().parents[2]
+        s = str(src_root)
+        if s not in sys.path:
+            sys.path.insert(0, s)
+
+
+_ensure_src_on_sys_path()
 
 from linguaboost._bootstrap import ensure_runtime_deps
 
