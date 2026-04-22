@@ -1,5 +1,9 @@
 from contextlib import asynccontextmanager
 
+from linguaboost._bootstrap import ensure_runtime_deps
+
+ensure_runtime_deps()
+
 from fastapi import FastAPI
 
 from linguaboost.adapters.config import get_settings
