@@ -1,0 +1,48 @@
+openapi: 3.1.0
+info:
+  title: LinguaBoost HTTP surface
+  version: 0.1.0
+  description: >
+    Минимальный контракт монолита: проверки здоровья и приём webhook Telegram.
+    Полная спецификация дополняется по мере реализации.
+paths:
+  /health:
+    get:
+      summary: Liveness/readiness
+      operationId: health
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /telegram/webhook:
+    post:
+      summary: Telegram Bot API webhook
+      operationId: telegramWebhook
+      parameters:
+        - name: secret
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Должен совпадать с WEBHOOK_SECRET при включённой проверке
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Update object (Telegram Bot API)
+      responses:
+        '200':
+          description: Update accepted
+        '401':
+          description: Invalid secret
+        '409':
+          description: Duplicate or rejected (optional; implementation-specific)
