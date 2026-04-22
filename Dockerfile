@@ -7,12 +7,14 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-COPY pyproject.toml alembic.ini ./
+COPY requirements.txt pyproject.toml alembic.ini ./
 COPY src ./src
 COPY scripts/docker-entrypoint.sh /docker-entrypoint.sh
 
+# Explicit deps first (some platforms skip metadata from pip install .)
 RUN pip install --upgrade pip \
-    && pip install . \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir . --no-deps \
     && chmod +x /docker-entrypoint.sh
 
 EXPOSE 8000

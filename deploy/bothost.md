@@ -10,9 +10,21 @@
 
 ## 1. Репозиторий и Dockerfile
 
-В корне **`Dockerfile`**: при старте создаётся `/app/data`, выполняется `alembic upgrade head`, затем `uvicorn`.
+В корне **`Dockerfile`** и **`requirements.txt`**: сначала ставятся зависимости из `requirements.txt`, затем пакет `linguaboost` (`pip install . --no-deps`). При старте: `/app/data`, `alembic upgrade head`, затем **`uvicorn`**.
 
 Переменная **`PORT`** пробрасывается платформой; при отсутствии используется `8000`.
+
+### Ошибка `ModuleNotFoundError: No module named 'fastapi'`
+
+Обычно значит, что **не установлены зависимости** или запуск идёт «голым» `python` по пути `/app/src/...` без `pip install`.
+
+Сделайте так:
+
+1. В панели включите деплой через **Dockerfile** (или шаг установки: `pip install -r requirements.txt && pip install .`).
+2. **Команда запуска** должна быть через установленный пакет, например:  
+   `uvicorn linguaboost.app.main:app --host 0.0.0.0 --port ${PORT:-8000}`  
+   Не используйте `python /app/src/linguaboost/app/main.py` как точку входа — зависимости могут не подхватиться.
+3. Пересоберите образ / повторите деплой после пуша в репозиторий.
 
 ## 2. Переменные окружения
 
