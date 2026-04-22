@@ -2,44 +2,32 @@
 
 **Дата**: 2026-04-22
 
-## Переменные окружения (черновик)
+## Переменные окружения
 
 | Переменная | Назначение |
 |------------|------------|
 | `BOT_TOKEN` | Telegram BotFather |
-| `DATABASE_URL` | `postgresql+asyncpg://user:pass@host:5432/linguaboost` |
-| `REDIS_URL` | `redis://localhost:6379/0` |
-| `WEBHOOK_URL` | Публичный URL для `setWebhook` |
-| `WEBHOOK_PATH` | Например `/telegram/webhook` |
-| `WEBHOOK_SECRET` | Секрет в query/header |
-| `LLM_ENABLED` | `0` / `1` |
-| `LLM_API_KEY` | Если включено |
-| `LOG_LEVEL` | `INFO` |
+| `WEBHOOK_SECRET` | Секрет в query webhook |
+| `DATABASE_URL` | опционально; по умолчанию `sqlite+aiosqlite:///./data/linguaboost.db` (каталог `data/` создайте вручную или через приложение) |
+| `LOG_LEVEL` | опционально, `INFO` |
+| `LLM_ENABLED` / `LLM_API_KEY` / `LLM_BASE_URL` | опционально |
 
-Секреты не коммитить; использовать `.env` локально (файл в `.gitignore`).
+**PostgreSQL и Redis не требуются** (текущая ветка кода).
 
-## Docker Compose (рекомендуется для dev)
+Секреты не коммитить; `.env` локально.
 
-Поднять **PostgreSQL** и **Redis**; приложение локально через `uv run` / `venv` для отладки breakpoints.
-
-Пример сервисов (адаптировать порты):
-
-- `postgres:15`
-- `redis:7`
-
-## Запуск (целевое состояние после реализации)
+## Запуск
 
 ```bash
+mkdir -p data
 alembic upgrade head
 uvicorn linguaboost.app.main:app --reload --port 8000
 ```
 
-Telegram: настроить webhook на `https://<host>/<WEBHOOK_PATH>?secret=<WEBHOOK_SECRET>` или использовать ngrok для локальных тестов.
+Webhook: `https://<host>/telegram/webhook?secret=<WEBHOOK_SECRET>`.
 
 ## Тесты
 
 ```bash
 pytest -q
 ```
-
-Интеграционные тесты — при наличии `docker compose -f compose.test.yml up -d`.

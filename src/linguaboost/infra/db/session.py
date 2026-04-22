@@ -10,7 +10,13 @@ from sqlalchemy.ext.asyncio import (
 
 
 def create_engine(url: str) -> AsyncEngine:
-    return create_async_engine(url, pool_pre_ping=True)
+    kwargs: dict = {}
+    if url.startswith("sqlite"):
+        kwargs["connect_args"] = {"check_same_thread": False}
+        kwargs["pool_pre_ping"] = False
+    else:
+        kwargs["pool_pre_ping"] = True
+    return create_async_engine(url, **kwargs)
 
 
 def create_session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:

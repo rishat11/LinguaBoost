@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import Response
 
 from linguaboost.app.state import AppState
-from linguaboost.infra.redis.client import claim_update
+from linguaboost.infra.repositories.telegram_dedup import claim_telegram_update
 
 router = APIRouter(prefix="/telegram", tags=["telegram"])
 log = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ async def telegram_webhook(request: Request, secret: str | None = None) -> Respo
     if update_id is None:
         raise HTTPException(status_code=400, detail="missing update_id")
 
-    if not await claim_update(lb.redis, int(update_id)):
+    if not await claim_telegram_update(lb.session_factory, int(update_id)):
         log.info("duplicate update_id=%s skipped", update_id)
         return Response(status_code=200)
 

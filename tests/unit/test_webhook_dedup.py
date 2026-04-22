@@ -1,27 +1,30 @@
 import pytest
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from linguaboost.infra.redis.client import claim_update
+from linguaboost.infra.db.base import Base
+from linguaboost.infra.db import models  # noqa: F401
+from linguaboost.infra.repositories.telegram_dedup import claim_telegram_update
 
 
-class FakeRedis:
-    def __init__(self) -> None:
-        self.store: dict[str, str] = {}
-
-    async def set(self, name: str, value: str, nx: bool = False, ex: int | None = None) -> bool | None:
-        if nx and name in self.store:
-            return None
-        self.store[name] = value
-        return True
+@pytest.fixture
+async def session_factory():
+    engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+    )
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    yield factory
+    await engine.dispose()
 
 
 @pytest.mark.asyncio
-async def test_claim_update_first_succeeds() -> None:
-    r = FakeRedis()
-    assert await claim_update(r, 42) is True
+async def test_claim_update_first_succeeds(session_factory) -> None:
+    assert await claim_telegram_update(session_factory, 42) is True
 
 
 @pytest.mark.asyncio
-async def test_claim_update_duplicate_fails() -> None:
-    r = FakeRedis()
-    assert await claim_update(r, 7) is True
-    assert await claim_update(r, 7) is False
+async def test_claim_update_duplicate_fails(session_factory) -> None:
+    assert await claim_telegram_update(session_factory, 7) is True
+    assert await claim_telegram_update(session_factory, 7) is False

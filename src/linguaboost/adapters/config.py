@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,8 +12,10 @@ class Settings(BaseSettings):
     )
 
     bot_token: str
-    database_url: str
-    redis_url: str
+    database_url: str = Field(
+        default="sqlite+aiosqlite:///./data/linguaboost.db",
+        description="Async SQLAlchemy URL, e.g. sqlite+aiosqlite:///./data/linguaboost.db",
+    )
     webhook_secret: str
     log_level: str = "INFO"
 
@@ -29,6 +31,8 @@ class Settings(BaseSettings):
     @property
     def database_url_sync(self) -> str:
         url = self.database_url
+        if "+aiosqlite" in url:
+            return url.replace("+aiosqlite", "+pysqlite", 1)
         if "+asyncpg" in url:
             return url.replace("+asyncpg", "+psycopg", 1)
         return url

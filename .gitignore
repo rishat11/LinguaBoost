@@ -32,6 +32,9 @@ ENV/
 .DS_Store
 Thumbs.db
 
+# Local SQLite (default path ./data/)
+data/
+
 # Testing / coverage
 .pytest_cache/
 .coverage
